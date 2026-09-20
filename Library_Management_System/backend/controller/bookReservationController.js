@@ -8,7 +8,7 @@ async function createReservation(req, res) {
     const { bookId, pickupDate, userPhone } = req.body;
     const userId = req.userId;
 
-    // Check user membership status
+    
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
