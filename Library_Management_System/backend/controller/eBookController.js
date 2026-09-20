@@ -2,8 +2,8 @@ const EBook = require("../models/eBookModel");
 const fs = require("fs");
 const path = require("path");
 
+//get e books
 
-// Get all e-books
 async function getEBooks(req, res) {
   try {
     const { category, search } = req.query;

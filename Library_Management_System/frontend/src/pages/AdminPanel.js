@@ -13,7 +13,7 @@ const AdminPanel = () => {
             navigate("/")
           }
     },[user])
-
+//
   return (
     <div className='min-h-[calc(100vh-120px)] lg:flex hidden bg-gradient-to-br from-amber-50 to-amber-100'>
         <aside className='bg-white min-h-full w-full max-w-64 rounded-r-2xl shadow-lg'>
