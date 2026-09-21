@@ -42,11 +42,7 @@ app.put('/api/change-password', authToken, changePassword);
 // Your existing routes
 app.use("/api", router)
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Configure static file serving
 const uploadsPath = path.join(__dirname, 'uploads');
-app.use('/uploads', express.static(uploadsPath));
 
 // Create uploads directory if it doesn't exist
 if (!fs.existsSync(uploadsPath)) {
@@ -56,7 +52,22 @@ if (!fs.existsSync(uploadsPath)) {
 // Add proper headers for file downloads
 app.use('/uploads', (req, res, next) => {
     res.setHeader('Content-Disposition', 'attachment');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     next();
+}, express.static(uploadsPath));
+
+app.use((err, req, res, next) => {
+    if (err instanceof require('multer').MulterError) {
+        return res.status(400).json({
+            message: err.code === 'LIMIT_FILE_SIZE' ? 'File too large (max 5MB)' : err.message,
+            error: true,
+            success: false
+        });
+    }
+    if (err && err.message && (err.message.includes('Only JPEG') || err.message.includes('Only image') || err.message.includes('Only PDF'))) {
+        return res.status(400).json({ message: err.message, error: true, success: false });
+    }
+    next(err);
 });
 
 app.use('/api/download', express.static(path.join(__dirname, 'uploads')), (req, res, next) => {

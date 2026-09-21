@@ -11,6 +11,7 @@ const userSignUpController = require("../controller/userSignup")
 const userSignInController = require("../controller/userSignin")
 const userDetailsController = require('../controller/userDetails')
 const authToken = require('../middleware/authToken')
+const adminOnly = require('../middleware/adminOnly')
 const userLogout = require('../controller/userLogout')
 const allUsers = require('../controller/allUsers')
 const updateUser = require('../controller/updateUser')
@@ -39,15 +40,15 @@ const ebookUpload = require('../middleware/ebookUpload');
 // E-Book routes
 router.get("/e-books", getEBooks);
 router.get("/e-books/:id", getEBookById);
-router.post("/e-books", authToken, ebookUpload.fields([
+router.post("/e-books", authToken, adminOnly, ebookUpload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'pdf', maxCount: 1 }
 ]), addEBook);
-router.put("/e-books/:id", authToken, ebookUpload.fields([
+router.put("/e-books/:id", authToken, adminOnly, ebookUpload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'pdf', maxCount: 1 }
 ]), updateEBook);
-router.delete("/e-books/:id", authToken, deleteEBook);
+router.delete("/e-books/:id", authToken, adminOnly, deleteEBook);
 
 // Update eBook routes to include viewer
 router.get("/e-books/view/:id", getEBookById); // Keep existing
@@ -56,9 +57,9 @@ router.get("/e-books/view-pdf/:id", viewEBook); // Add PDF viewer route
 // Book routes
 router.get("/books", getBooks);
 router.get("/books/:id", getBookById);
-router.post("/books", upload.single("image"), addBook);
-router.put("/books/:id", upload.single("image"), updateBook);
-router.delete("/books/:id", deleteBook);
+router.post("/books", authToken, adminOnly, upload.single("image"), addBook);
+router.put("/books/:id", authToken, adminOnly, upload.single("image"), updateBook);
+router.delete("/books/:id", authToken, adminOnly, deleteBook);
 
 // Book Reservation routes
 router.post("/book-reservation", authToken, createReservation);
