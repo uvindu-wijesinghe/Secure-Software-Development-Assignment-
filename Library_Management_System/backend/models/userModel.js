@@ -6,12 +6,23 @@ const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: {
+      type: String,
+      required: function () {
+        return this.authProvider === 'local' || !this.authProvider;
+      }
+    },
     role: { type: String, enum: ["ADMIN", "GENERAL"], default: "GENERAL" },
     profilePic: { type: String },
     registrationNumber: { type: String, unique: true },
     contactNumber: { type: String },
     address: { type: String },
+    googleId: { type: String, sparse: true, unique: true },
+    authProvider: {
+      type: String,
+      enum: ['local', 'google'],
+      default: 'local'
+    },
     // New fields for membership
     membershipStatus: { 
       type: String, 

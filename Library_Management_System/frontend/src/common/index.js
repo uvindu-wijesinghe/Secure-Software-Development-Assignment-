@@ -1,5 +1,5 @@
 // common/index.js - Fixed SummaryApi
-const backendDomain = "http://localhost:8000";
+const backendDomain = (process.env.REACT_APP_API_URL || "http://localhost:8000").replace(/\/$/, "");
 
 const baseUrl = process.env.REACT_APP_API_URL || '';
 
@@ -12,6 +12,10 @@ const SummaryApi = {
     signIn : {
         url: `${backendDomain}/api/signin`,
         method: "POST"
+    },
+    googleLogin: {
+      url: `${backendDomain}/api/auth/google`,
+      method: "GET"
     },
     current_user :{
         url : `${backendDomain}/api/user-details`,
