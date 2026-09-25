@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { FaEye, FaEyeSlash, FaBookOpen, FaUser } from "react-icons/fa";
 import { Link, useNavigate } from 'react-router-dom';
 import SummaryApi from '../common';
@@ -15,6 +15,22 @@ const Login = () => {
 
     const navigate = useNavigate()
     const { fetchUserDetails } = useContext(Context)
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search)
+        if (params.get('oauth') === 'error') {
+            const reason = params.get('reason')
+            const message = reason === 'not_configured'
+                ? 'Google login is not configured yet.'
+                : 'Google login could not be completed.'
+            toast.error(message)
+            window.history.replaceState({}, document.title, '/login')
+        }
+    }, [])
+
+    const handleGoogleLogin = () => {
+        window.location.assign(SummaryApi.googleLogin.url)
+    }
 
     const handleOnChange = (e) => {
         const { name, value } = e.target
@@ -197,6 +213,20 @@ const Login = () => {
                             ) : (
                                 'Sign In'
                             )}
+                        </button>
+
+                        <div className="flex items-center gap-3 text-sm text-gray-500">
+                            <span className="h-px flex-1 bg-gray-200" />
+                            <span>or</span>
+                            <span className="h-px flex-1 bg-gray-200" />
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={handleGoogleLogin}
+                            className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-gray-50 transition-all flex items-center justify-center"
+                        >
+                            Continue with Google
                         </button>
                     </form>
 
