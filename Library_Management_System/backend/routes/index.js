@@ -94,7 +94,6 @@ const {
 } = require('../controller/membershipController');
 
 
-
 // Add membership routes
 router.post("/upload-membership-slip", 
   authToken, 
