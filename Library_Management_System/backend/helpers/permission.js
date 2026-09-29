@@ -1,13 +1,12 @@
-const userModel = require("../models/userModel")
+const userModel = require('../models/userModel');
 
-const addChannelingAppointmentPermission = async(userId) => {
-    const user = userModel.findById(userId)
-
-    if(user.role !== 'ADMIN'){
-        return false
-    }
-
-    return true
+/**
+ * Returns true if the given userId belongs to an ADMIN.
+ */
+async function isAdmin(userId) {
+  if (!userId) return false;
+  const user = await userModel.findById(userId).select('role');
+  return Boolean(user && user.role === 'ADMIN');
 }
 
-module.exports =  addChannelingAppointmentPermission
+module.exports = isAdmin;

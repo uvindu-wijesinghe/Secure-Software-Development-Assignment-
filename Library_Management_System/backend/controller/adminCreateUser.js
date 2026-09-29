@@ -1,34 +1,35 @@
 const userModel = require('../models/userModel');
 
 /**
- * Public signup — always creates GENERAL users.
- * Role from the client body is ignored (prevents privilege escalation).
+ * Admin-only user creation — may set role to ADMIN or GENERAL.
  */
-async function userSignUpController(req, res) {
+async function adminCreateUser(req, res) {
   try {
-    const { email, password, name, profilePic } = req.body;
+    const { email, password, name, role = 'GENERAL', profilePic } = req.body;
 
     if (!email) throw new Error('Please provide email');
     if (!password) throw new Error('Please provide password');
     if (!name) throw new Error('Please provide name');
     if (password.length < 6) throw new Error('Password must be at least 6 characters');
 
+    const allowedRoles = ['ADMIN', 'GENERAL'];
+    const safeRole = allowedRoles.includes(role) ? role : 'GENERAL';
+
     const existingUser = await userModel.findOne({ email });
     if (existingUser) throw new Error('User already exists with this email');
 
-    const payload = {
+    const userData = new userModel({
       email,
       name,
       password,
-      role: 'GENERAL',
+      role: safeRole,
       authProvider: 'local',
       ...(profilePic && { profilePic }),
-      membershipStatus: 'PENDING',
+      membershipStatus: safeRole === 'ADMIN' ? 'ACTIVE' : 'PENDING',
       fines: 0,
       reservationLimit: 2
-    };
+    });
 
-    const userData = new userModel(payload);
     const saveUser = await userData.save();
 
     res.status(201).json({
@@ -44,7 +45,7 @@ async function userSignUpController(req, res) {
       error: false
     });
   } catch (err) {
-    console.error('Signup error:', err.message);
+    console.error('Admin create user error:', err.message);
     res.status(400).json({
       message: err.message || 'Error creating user',
       error: true,
@@ -53,4 +54,4 @@ async function userSignUpController(req, res) {
   }
 }
 
-module.exports = userSignUpController;
+module.exports = adminCreateUser;

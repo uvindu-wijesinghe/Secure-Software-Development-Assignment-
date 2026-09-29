@@ -32,7 +32,7 @@ npm start
 
 Then access:
 - 🌐 Frontend: http://localhost:3000
-- 🔌 Backend API: http://localhost:5000
+- 🔌 Backend API: http://localhost:8000
 
 ## 🏛️ Platform Overview
 A complete digital library platform featuring:
@@ -82,7 +82,24 @@ frontend/       # React UI for users and admins
 ```
 
 ## ⚙️ Environment Setup
-Make sure your backend is configured with the required MongoDB connection and environment variables before running the app.
+Copy `backend/.env.example` to `backend/.env` and set the local values before running the backend. For Google login, configure a Google OAuth Web application with this exact redirect URI:
+
+```text
+http://localhost:8000/api/auth/google/callback
+```
+
+Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `GOOGLE_CALLBACK_URL` in `backend/.env`. Set `REACT_APP_API_URL=http://localhost:8000` in `frontend/.env` when using a different backend URL. Never commit either `.env` file.
+
+## 🔐 Security Hardening
+- Server-side `ADMIN` authorization protects administrative APIs.
+- Public signup always creates `GENERAL` users.
+- Password hashes are excluded from user responses.
+- JWTs are delivered through an HTTP-only cookie and are not accepted in query strings.
+- Helmet security headers and authentication rate limits are enabled.
+- Image and e-book uploads have type and size restrictions.
+- Google OAuth uses the server-side Authorization Code flow and never promotes OAuth users to `ADMIN`.
+
+The assignment submission checklist and editable member information are in `README.txt`. Evidence such as ZAP reports, curl/Postman results, and the report PDF must be added before submission.
 
 ## 📝 Usage
 Once the app is running, users can:

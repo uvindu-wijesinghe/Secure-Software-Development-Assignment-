@@ -29,7 +29,7 @@ const Login = () => {
     }, [])
 
     const handleGoogleLogin = () => {
-        window.location.assign(SummaryApi.googleLogin.url)
+        window.location.assign(`${SummaryApi.googleLogin.url}`)
     }
 
     const handleOnChange = (e) => {
@@ -46,29 +46,31 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setIsLoading(true)
+        try {
+            const dataResponse = await fetch(SummaryApi.signIn.url, {
+                method: SummaryApi.signIn.method,
+                credentials: 'include',
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
 
-        const dataResponse = await fetch(SummaryApi.signIn.url, {
-            method: SummaryApi.signIn.method,
-            credentials: 'include',
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        })
+            const dataApi = await dataResponse.json()
 
-        const dataApi = await dataResponse.json()
+            if (!dataResponse.ok || dataApi.error) {
+                toast.error(dataApi.message || 'Unable to sign in')
+                return
+            }
 
-        if (dataApi.success) {
             toast.success(dataApi.message)
+            await fetchUserDetails()
             navigate('/')
-            fetchUserDetails()
+        } catch (error) {
+            toast.error('Network error. Please try again.')
+        } finally {
+            setIsLoading(false)
         }
-
-        if (dataApi.error) {
-            toast.error(dataApi.message)
-        }
-        
-        setIsLoading(false)
     }
 
     return (

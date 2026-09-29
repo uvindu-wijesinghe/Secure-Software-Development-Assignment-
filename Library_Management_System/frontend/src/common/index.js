@@ -1,7 +1,6 @@
-// common/index.js - Fixed SummaryApi
+// common/index.js - API endpoints
 const backendDomain = (process.env.REACT_APP_API_URL || "http://localhost:8000").replace(/\/$/, "");
-
-const baseUrl = process.env.REACT_APP_API_URL || '';
+const baseUrl = backendDomain;
 
 
 const SummaryApi = {

@@ -1,5 +1,5 @@
-// models/userModel.js - Updated
-const mongoose = require("mongoose");
+// models/userModel.js
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema(
@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema(
         return this.authProvider === 'local' || !this.authProvider;
       }
     },
-    role: { type: String, enum: ["ADMIN", "GENERAL"], default: "GENERAL" },
+    role: { type: String, enum: ['ADMIN', 'GENERAL'], default: 'GENERAL' },
     profilePic: { type: String },
     registrationNumber: { type: String, unique: true },
     contactNumber: { type: String },
@@ -23,11 +23,10 @@ const userSchema = new mongoose.Schema(
       enum: ['local', 'google'],
       default: 'local'
     },
-    // New fields for membership
-    membershipStatus: { 
-      type: String, 
-      enum: ["PENDING", "ACTIVE", "EXPIRED", "SUSPENDED"], 
-      default: "PENDING" 
+    membershipStatus: {
+      type: String,
+      enum: ['PENDING', 'ACTIVE', 'EXPIRED', 'SUSPENDED'],
+      default: 'PENDING'
     },
     membershipExpiry: { type: Date },
     membershipPayment: {
@@ -38,32 +37,32 @@ const userSchema = new mongoose.Schema(
     },
     fines: { type: Number, default: 0 },
     reservationLimit: { type: Number, default: 2 },
-    qrCode: { type: String } // Store QR code data or path
+    qrCode: { type: String }
   },
   { timestamps: true }
 );
 
-// ... rest of the user model code remains the same
-
-// Pre-save middleware to generate registration number based on role
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (this.isNew && !this.registrationNumber) {
     try {
       let prefix = 'BN';
       let startingNumber = 1001;
-      
+
       if (this.role === 'ADMIN') {
         prefix = 'BN_ADM';
         startingNumber = 101;
-        
+
         const lastAdmin = await this.constructor.findOne(
           { role: 'ADMIN', registrationNumber: { $regex: /^BN_ADM\d+$/ } },
           { registrationNumber: 1 },
           { sort: { createdAt: -1 } }
         );
-        
+
         if (lastAdmin && lastAdmin.registrationNumber) {
-          const lastNumber = parseInt(lastAdmin.registrationNumber.replace('BN_ADM', ''));
+          const lastNumber = parseInt(
+            lastAdmin.registrationNumber.replace('BN_ADM', ''),
+            10
+          );
           startingNumber = lastNumber + 1;
         }
       } else {
@@ -72,14 +71,23 @@ userSchema.pre('save', async function(next) {
           { registrationNumber: 1 },
           { sort: { createdAt: -1 } }
         );
-        
+
         if (lastUser && lastUser.registrationNumber) {
-          const lastNumber = parseInt(lastUser.registrationNumber.replace('BN', ''));
+          const lastNumber = parseInt(
+            lastUser.registrationNumber.replace('BN', ''),
+            10
+          );
           startingNumber = lastNumber + 1;
         }
       }
-      
-      this.registrationNumber = `${prefix}${startingNumber}`;
+
+      let registrationNumber = `${prefix}${startingNumber}`;
+      while (await this.constructor.exists({ registrationNumber })) {
+        startingNumber += 1;
+        registrationNumber = `${prefix}${startingNumber}`;
+      }
+
+      this.registrationNumber = registrationNumber;
     } catch (error) {
       return next(error);
     }
@@ -87,10 +95,9 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password') || !this.password) return next();
+
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -100,6 +107,6 @@ userSchema.pre('save', async function(next) {
   }
 });
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;

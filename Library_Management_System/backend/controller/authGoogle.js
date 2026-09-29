@@ -23,6 +23,9 @@ function issueAppSession(res, user) {
   return token;
 }
 
+/**
+ * Start Google OAuth — redirects to Google consent screen.
+ */
 function googleAuthStart(req, res) {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const callbackUrl =
@@ -46,6 +49,9 @@ function googleAuthStart(req, res) {
   res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
 }
 
+/**
+ * Google OAuth callback — exchange code, find/create user, set JWT cookie.
+ */
 async function googleAuthCallback(req, res) {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -71,6 +77,7 @@ async function googleAuthCallback(req, res) {
       return res.redirect(`${frontendUrl}/login?oauth=error&reason=not_configured`);
     }
 
+    // Exchange authorization code for tokens (secret stays on server)
     const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -103,9 +110,11 @@ async function googleAuthCallback(req, res) {
     });
 
     if (user) {
+      // Link Google to existing local account if needed
       if (!user.googleId) {
         user.googleId = profile.sub;
         if (!user.authProvider || user.authProvider === 'local') {
+          // Keep local password; mark as having Google linked
           user.authProvider = user.password ? 'local' : 'google';
         }
         if (!user.profilePic && profile.picture) {
@@ -114,6 +123,7 @@ async function googleAuthCallback(req, res) {
         await user.save();
       }
     } else {
+      // New Google users are always GENERAL — never auto-promote to ADMIN
       user = new userModel({
         name: profile.name || profile.email.split('@')[0],
         email: profile.email,
